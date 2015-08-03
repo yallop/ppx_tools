@@ -6,6 +6,8 @@
 
 open Parsetree
 
+type constructor_arguments = core_type list
+
 class mapper:
   object
     method attribute: attribute -> attribute

@@ -38,12 +38,12 @@ let use_arrows = ref false
 
 let existential_method =
   Cf.(method_ (mknoloc "existential") Public
-        (virtual_ Typ.(poly ["a"] (arrow Nolabel (var "a") (var "res"))))
+        (virtual_ Typ.(poly ["a"] (arrow Parsetree.Parr_simple (var "a") (var "res"))))
      )
 
 let arrow_method =
   Cf.(method_ (mknoloc "arrow") Public
-        (virtual_ Typ.(poly ["a"] (arrow Nolabel (var "a") (var "res"))))
+        (virtual_ Typ.(poly ["a"] (arrow Parsetree.Parr_simple (var "a") (var "res"))))
      )
 
 let rec gen ty =
@@ -65,11 +65,11 @@ let rec gen ty =
   Hashtbl.add printed ty ();
   let params = List.mapi (fun i _ -> Printf.sprintf "f%i" i) td.type_params in
   let env = List.map2 (fun s t -> t.id, evar s) params td.type_params in
-  let make_result_t tyargs = Typ.(arrow Asttypes.Nolabel (constr (lid ty) tyargs) (var "res")) in
+  let make_result_t tyargs = Typ.(arrow Parsetree.Parr_simple (constr (lid ty) tyargs) (var "res")) in
   let make_t tyargs =
     List.fold_right
       (fun arg t ->
-         Typ.(arrow Asttypes.Nolabel (arrow Asttypes.Nolabel arg (var "res")) t))
+         Typ.(arrow Parsetree.Parr_simple (arrow Parsetree.Parr_simple arg (var "res")) t))
       tyargs (make_result_t tyargs)
   in
   let tyargs = List.map (fun t -> Typ.var t) params in
@@ -99,14 +99,9 @@ let rec gen ty =
         let c = Ident.name cd.cd_id in
         let qc = prefix ^ c in
         match cd.cd_args with
-        | Cstr_tuple (tys) ->
+          tys ->
           let p, args = gentuple env tys in
           pconstr qc p, selfcall "constr" [str ty; tuple[str c; list args]]
-        | Cstr_record (l) ->
-          let l = List.map field l in
-          pconstr qc [Pat.record (List.map fst l) Closed],
-          selfcall "constr" [str ty; tuple [str c;
-            selfcall "record" [str (ty ^ "." ^ c); list (List.map snd l)]]]
       in
       concrete (func (List.map case l))
   | Type_abstract, Some t ->
@@ -175,12 +170,12 @@ let simplify =
     let open Parsetree in
     match e.pexp_desc with
     | Pexp_fun
-        (Asttypes.Nolabel, None,
+        (Parsetree.Parr_simple, None,
          {ppat_desc = Ppat_var{txt=id;_};_},
          {pexp_desc =
             Pexp_apply
               (f,
-               [Asttypes.Nolabel
+               [Parsetree.Papp_simple
                ,{pexp_desc= Pexp_ident{txt=Lident id2;_};_}]);_})
          when id = id2 -> f
     | _ -> e
