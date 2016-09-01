@@ -33,6 +33,8 @@ class mapper:
     method label_declaration: label_declaration -> label_declaration
     method location: Location.t -> Location.t
     method module_binding: module_binding -> module_binding
+    method module_argument: module_argument -> module_argument
+    method module_parameter: module_parameter -> module_parameter
     method module_declaration: module_declaration -> module_declaration
     method module_expr: module_expr -> module_expr
     method module_type: module_type -> module_type

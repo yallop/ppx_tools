@@ -152,10 +152,10 @@ module MT = struct
     | Pmty_ident s -> ident ~loc ~attrs (map_loc sub s)
     | Pmty_alias s -> alias ~loc ~attrs (map_loc sub s)
     | Pmty_signature sg -> signature ~loc ~attrs (sub # signature sg)
-    | Pmty_functor (s, mt1, mt2) ->
-        functor_ ~loc ~attrs (map_loc sub s)
-          (map_opt (sub # module_type) mt1)
-          (sub # module_type mt2)
+    | Pmty_functor (mp, mt) ->
+        functor_ ~loc ~attrs
+          (sub # module_parameter mp)
+          (sub # module_type mt)
     | Pmty_with (mt, l) ->
         with_ ~loc ~attrs (sub # module_type mt)
               (List.map (sub # with_constraint) l)
@@ -193,6 +193,28 @@ module MT = struct
     | Psig_attribute x -> attribute ~loc (sub # attribute x)
 end
 
+module MP = struct
+  let map sub = function
+      Pmpar_generative -> Pmpar_generative
+    | Pmpar_applicative (s, mt) ->
+      Pmpar_applicative (map_loc sub s, 
+                         sub # module_type mt)
+    | Pmpar_implicit (s, mt) ->
+      Pmpar_implicit (map_loc sub s, 
+                      sub # module_type mt)
+end
+
+module MA = struct
+
+  let map sub = function
+      Pmarg_generative -> Pmarg_generative
+    | Pmarg_applicative me ->
+      Pmarg_applicative (sub # module_expr me)
+    | Pmarg_implicit me ->
+      Pmarg_implicit (sub # module_expr me)
+end
+
+
 
 module M = struct
   (* Value expressions for the module language *)
@@ -204,12 +226,12 @@ module M = struct
     match desc with
     | Pmod_ident x -> ident ~loc ~attrs (map_loc sub x)
     | Pmod_structure str -> structure ~loc ~attrs (sub # structure str)
-    | Pmod_functor (arg, arg_ty, body) ->
-        functor_ ~loc ~attrs (map_loc sub arg)
-          (map_opt (sub # module_type) arg_ty)
+    | Pmod_functor (mp, body) ->
+        functor_ ~loc ~attrs
+          (sub # module_parameter mp)
           (sub # module_expr body)
     | Pmod_apply (m1, m2) ->
-        apply ~loc ~attrs (sub # module_expr m1) (sub # module_expr m2)
+        apply ~loc ~attrs (sub # module_expr m1) (sub # module_argument m2)
     | Pmod_constraint (m, mty) ->
         constraint_ ~loc ~attrs (sub # module_expr m) (sub # module_type mty)
     | Pmod_unpack e -> unpack ~loc ~attrs (sub # expr e)
@@ -412,6 +434,8 @@ class mapper =
     method signature l = List.map (this # signature_item) l
     method signature_item si = MT.map_signature_item this si
     method module_type = MT.map this
+    method module_parameter = MP.map this
+    method module_argument = MA.map this
     method with_constraint c = MT.map_with_constraint this c
 
     method class_declaration = CE.class_infos this (this # class_expr)
