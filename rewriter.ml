@@ -90,14 +90,14 @@ let () =
       let lexer = make_lexer source_kind source in
       match ast_kind with
       | `Struct ->
-        let pstr = Parse.implementation lexer in
-        let pstr = Pparse.apply_rewriters (* ~restore:true *) ~tool_name:!tool_name
+        let pstr  = Parse.implementation lexer in
+        let pstr = Pparse.apply_rewriters ~restore:true ~tool_name:!tool_name
                                           Config.ast_impl_magic_number pstr in
         Pprintast.structure fmt pstr;
         Format.pp_print_newline fmt ()
       | `Sig ->
         let psig = Parse.interface lexer in
-        let psig = Pparse.apply_rewriters (* ~restore:true *) ~tool_name:!tool_name
+        let psig = Pparse.apply_rewriters ~restore:true ~tool_name:!tool_name
                                           Config.ast_intf_magic_number psig in
         Pprintast.signature fmt psig;
         Format.pp_print_newline fmt ())
