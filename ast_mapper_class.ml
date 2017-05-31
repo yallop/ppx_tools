@@ -507,8 +507,8 @@ class mapper =
       }
 
     method open_description
-        {popen_lid; popen_override; popen_attributes; popen_loc} =
-      Opn.mk (map_loc this popen_lid)
+        {popen_expr; popen_override; popen_attributes; popen_loc} =
+      Opn.mk (this#module_expr popen_expr)
         ~override:popen_override
         ~loc:(this # location popen_loc)
         ~attrs:(this # attributes popen_attributes)
